@@ -38,9 +38,19 @@ void Block::rotate(int dir){
         }
     }
 }
-void Block::print_directions(){
+void Block::set_connect_direction(int direction, int value){
+    connect_directions[direction]=value;
+}
+int* Block::get_connect_directions(){
+    return connect_directions;
+}
+int Block::get_connect_direction(int direction){
+    return connect_directions[direction];
+}
+int Block::get_degree(){
+    int degree=0;
     for(int i=0;i<4;i++){
-        std::cout<<connect_directions[i]<<" ";
+        if(connect_directions[i]==1)degree++;
     }
-    std::cout<<std::endl;
+    return degree;
 }
