@@ -30,7 +30,60 @@ GameMap::GameMap(int width, int height){
     this->playerx = 0;
     this->playery = 0;
 }
+GameMap::GameMap(){
+    this->width = 3;
+    this->height = 3;
+    mapp = new Block*[height];
+    mapp_answer = new Block*[height];
+    for(int i = 0; i < height; i++){
+        mapp[i] = new Block[width];
+        mapp_answer[i] = new Block[width];
+    }
+    this->playerx = 0;
+    this->playery = 0;
 
+}
+void GameMap::init_tutorial(){
+    mapp_answer[0][0].set_type(2);
+    mapp_answer[0][0].set_connect_direction(1,1);
+    mapp_answer[0][1].set_type(0);
+    mapp_answer[0][1].set_connect_direction(3,1);
+    mapp_answer[0][1].set_connect_direction(2,1);
+    mapp_answer[0][2].set_type(2);
+    mapp_answer[0][2].set_connect_direction(0,1);
+    mapp_answer[1][0].set_type(2);
+    mapp_answer[1][0].set_connect_direction(2,1);
+    mapp_answer[1][1].set_type(1);
+    mapp_answer[1][1].set_connect_direction(0,1);
+    mapp_answer[1][1].set_connect_direction(1,1);
+    mapp_answer[1][1].set_connect_direction(3,1); 
+    mapp_answer[1][2].set_type(3);
+    mapp_answer[2][0].set_type(0);
+    mapp_answer[2][0].set_connect_direction(0,1);
+    mapp_answer[2][0].set_connect_direction(3,1);
+    mapp_answer[2][0].set_connect_direction(2,1);
+    mapp_answer[2][1].set_type(0);
+    mapp_answer[2][1].set_connect_direction(0,1);
+    mapp_answer[2][1].set_connect_direction(1,1);
+    mapp_answer[2][1].set_connect_direction(2,1);
+    mapp_answer[2][2].set_type(2);
+    mapp_answer[2][2].set_connect_direction(2,1);
+    for(int i=0;i<height;i++)
+    {
+        for(int j=0;j<width;j++)
+        {
+            Block blk=mapp_answer[i][j];
+            int rotation=rand()%4;
+            for(int k=0;k<rotation;k++){
+                blk.rotate(1);
+            }
+            mapp[i][j]=blk;
+        }
+    }
+    init_targetcount();
+    init_pipecount();
+    init_sources();
+}
 void GameMap::set_block(int x, int y, Block block, int query){
     if(query==0)mapp[x][y] = block;
     else if(query==1) mapp_answer[x][y]=block;
@@ -54,12 +107,10 @@ void GameMap::print_map(int query){
     }
     //bfs to find connected blocks
     std::queue<std::pair<int,int> >q;
-    for(int i=0;i<height;i++)
-        for(int j=0;j<width;j++)
-            if(mapp_print[i][j].get_type()==1){
-                q.push(std::make_pair(i,j));
-                connectivity[i][j]=1;
-            }
+    for(int i=0;i<sources.size();i++){
+        q.push(sources[i]);
+        connectivity[sources[i].first][sources[i].second]=1;
+    }
     while(!q.empty()){
         std::pair<int,int>cur=q.front();
         q.pop();
@@ -81,22 +132,22 @@ void GameMap::print_map(int query){
         for(int k=0;k<3;k++){
             for(int j=0;j<width;j++){
                 bool playerblock=false,connected=false;
-                if(i==playerx and j==playery and k==1)playerblock=true;
+                if(i==this->playerx and j==this->playery)playerblock=true;
                 if(connectivity[i][j]==1)connected=true;
                 switch(k){
                     case 0:
-                        if(playerblock)std::cout<<BGREEN;
+                        if(playerblock)std::cout<<BYELLOW;
                         std::cout<<" ";
-                        if(playerblock)std::cout<<RESET;
                         if(connected)std::cout<<BLUE;
                         if(mapp_print[i][j].get_connect_direction(1)==1)std::cout<<"|";
                         else std::cout<<" ";
                         if(connected)std::cout<<RESET;
-                        if(playerblock)std::cout<<BGREEN;
+                        if(playerblock)std::cout<<BYELLOW;
                         std::cout<<" ";
                         if(playerblock)std::cout<<RESET;
                         break;
                     case 1:
+                        if(playerblock)std::cout<<BYELLOW;
                         if(connected)std::cout<<BLUE;
                         if(mapp_print[i][j].get_connect_direction(0)==1)std::cout<<"-";
                         else std::cout<<" ";
@@ -107,16 +158,16 @@ void GameMap::print_map(int query){
                         if(mapp_print[i][j].get_connect_direction(2)==1)std::cout<<"-";
                         else std::cout<<" ";
                         if(connected)std::cout<<RESET;
+                        if(playerblock)std::cout<<RESET;
                         break;
                     case 2:
-                        if(playerblock)std::cout<<BGREEN;
+                        if(playerblock)std::cout<<BYELLOW;
                         std::cout<<" ";
-                        if(playerblock)std::cout<<RESET;
                         if(connected)std::cout<<BLUE;
                         if(mapp_print[i][j].get_connect_direction(3)==1)std::cout<<"|";
                         else std::cout<<" ";
                         if(connected)std::cout<<RESET;
-                        if(playerblock)std::cout<<BGREEN;
+                        if(playerblock)std::cout<<BYELLOW;
                         std::cout<<" ";
                         if(playerblock)std::cout<<RESET;
                         break;
@@ -129,6 +180,8 @@ void GameMap::print_map(int query){
         delete[] connectivity[i];
         delete[] mapp_print[i];
     }
+    delete[] connectivity;
+    delete[] mapp_print;
 }
 GameMap random_generate(int level){
     int n=int(sqrt(level))+3;
@@ -241,6 +294,19 @@ GameMap random_generate(int level){
             visited[nowpath[i].first][nowpath[i].second]=1;
         }
     }
+    for(int i=0;i<n;i++)
+    {
+        for(int j=0;j<n;j++)
+        {
+            Block blk=game_map.get_block(i,j,1);
+            if(blk.get_degree()==0)
+            {
+                blk.set_type(3);
+                game_map.set_block(i,j,blk,1);
+            }
+
+        }
+    }
     for(int i=0;i<n;i++){
         for(int j=0;j<n;j++){
             Block blk=game_map.get_block(i,j,1);
@@ -258,3 +324,151 @@ void GameMap::set_player(int x, int y){
     playerx=x;
     playery=y;
 }
+
+int GameMap::get_playerx(){
+    return playerx;
+}
+
+int GameMap::get_playery(){
+    return playery;
+}
+
+int GameMap::get_width(){
+    return width;
+}
+
+int GameMap::get_height(){
+    return height;
+}
+int GameMap::get_targetcount(){
+    return targetcount;
+}
+int GameMap::get_pipecount(){
+    return pipecount;
+}
+int GameMap::init_targetcount(){
+    targetcount=0;
+    for(int i=0;i<height;i++){
+        for(int j=0;j<width;j++){
+            if(mapp[i][j].get_type()==2)targetcount++;
+        }
+    }
+}
+int GameMap::init_pipecount(){
+    pipecount=0;
+    for(int i=0;i<height;i++){
+        for(int j=0;j<width;j++){
+            if(mapp[i][j].get_type()==0)pipecount++;
+        }
+    }
+}
+
+void GameMap::init_sources(){
+    for(int i=0;i<height;i++){
+        for(int j=0;j<width;j++){
+            if(mapp[i][j].get_type()==1)sources.push_back(std::make_pair(i,j));
+        }
+    }
+}
+
+int GameMap::get_targets_activated(){
+    std::queue<std::pair<int,int> >q;
+    int**visited=new int*[height];
+    for(int i=0;i<height;i++){
+        visited[i]=new int[width];
+        for(int j=0;j<width;j++){
+            visited[i][j]=0;
+        }
+    }
+    for(int i=0;i<sources.size();i++){
+        q.push(sources[i]);
+        visited[sources[i].first][sources[i].second]=1;
+    }
+    int targets_activated=0;
+    while(!q.empty()){
+        std::pair<int,int>cur=q.front();
+        q.pop();
+        int posx=cur.first,posy=cur.second;
+        int dy[4]={-1,0,1,0},dx[4]={0,-1,0,1};
+        for(int i=0;i<4;i++){
+            int new_x=(posx+dx[i]+height)%height,new_y=(posy+dy[i]+width)%width;
+            if(visited[new_x][new_y]==0){
+                int* direction_a=mapp[posx][posy].get_connect_directions(),*direction_b=mapp[new_x][new_y].get_connect_directions();
+                if(direction_a[i]==1 and direction_b[(i+2)%4]==1){
+                    visited[new_x][new_y]=1;
+                    q.push(std::make_pair(new_x,new_y));
+                    if(mapp[new_x][new_y].get_type()==2)targets_activated++;
+                }
+            }
+        }
+    }
+    for (int i = 0; i < height; i++)
+    {
+        delete[] visited[i];
+    }
+    return targets_activated;
+}
+
+int GameMap::get_pipes_activated(){
+    std::queue<std::pair<int,int> >q;
+    int**visited=new int*[height];
+    for(int i=0;i<height;i++){
+        visited[i]=new int[width];
+        for(int j=0;j<width;j++){
+            visited[i][j]=0;
+        }
+    }
+    for(int i=0;i<sources.size();i++){
+        q.push(sources[i]);
+        visited[sources[i].first][sources[i].second]=1;
+    }
+    int pipes_activated=0;
+    while(!q.empty()){
+        std::pair<int,int>cur=q.front();
+        q.pop();
+        int posx=cur.first,posy=cur.second;
+        int dy[4]={-1,0,1,0},dx[4]={0,-1,0,1};
+        for(int i=0;i<4;i++){
+            int new_x=(posx+dx[i]+height)%height,new_y=(posy+dy[i]+width)%width;
+            if(visited[new_x][new_y]==0){
+                int* direction_a=mapp[posx][posy].get_connect_directions(),*direction_b=mapp[new_x][new_y].get_connect_directions();
+                if(direction_a[i]==1 and direction_b[(i+2)%4]==1){
+                    visited[new_x][new_y]=1;
+                    q.push(std::make_pair(new_x,new_y));
+                    if(mapp[new_x][new_y].get_type()==0)pipes_activated++;
+                }
+            }
+        }
+    }
+    for (int i = 0; i < height; i++)
+    {
+        delete[] visited[i];
+    }
+    return pipes_activated;
+}
+
+int GameMap::check_winstate(){
+    if(get_targets_activated()<targetcount)return 0;
+    else if(get_pipes_activated()<pipecount)return 1;
+    else return 2;
+}
+void GameMap::set_width(int width){
+    this->width=width;
+}
+void GameMap::set_height(int height){
+    this->height=height;
+}
+
+#undef RED
+#undef GREEN
+#undef YELLOW
+#undef BLUE
+#undef MAGENTA
+#undef CYAN
+#undef RESET
+#undef BRED
+#undef BGREEN
+#undef BYELLOW
+#undef BBLUE
+#undef BMAGENTA
+#undef BCYAN
