@@ -4,8 +4,8 @@ This is a pipe rotation game based on the C++ language. Players need to adjust t
 
 ## How to Start the Game
 
--Navigate to the "src" directory.
--Run the command "./main" to start the game.
+- Navigate to the "src" directory.
+- Run the command "./main" to start the game.
 
 ## Game Rules
 
