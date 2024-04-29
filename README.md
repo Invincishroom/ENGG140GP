@@ -27,5 +27,6 @@ This is a pipe rotation game based on the C++ language. Players need to adjust t
 - D key: move right / select the target on the right 
 - R key: turn the direction of the selected pipe to the right 
 - L key: turn the direction of the selected pipe to the left
+- Q key: exit the game. If Basic completion is achieved, the level is still considered complete.
 
 Enjoy your game!!!
