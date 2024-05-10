@@ -29,4 +29,11 @@ This is a pipe rotation game based on the C++ language. Players need to adjust t
 - L key: turn the direction of the selected pipe to the left
 - Q key: exit the game. If Basic completion is achieved, the level is still considered complete.
 
+##Implementation
+
+The game features the following coding requirements:
+- A random map generator
+- STL containers including vectors and queues used in various parts of the game to support BFS in map generator, check of connectivity during gameplay and more
+- The use of two-dimensional pointers to create a dynamic sized map; The use of STL vectors as dynamic memory management is also featured.
+- Program is separated in multiple files, specifically based on definition of different classes that have dependencies on each other.
 Enjoy your game!!!
